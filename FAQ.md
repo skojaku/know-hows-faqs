@@ -66,6 +66,48 @@ With Google Drive, the aforementioned middle man, a.k.a your local machine, can 
 Few other resources exist to directly download from google drive to a server:  
 * [gdown](https://github.com/wkentaro/gdown)
 
+### How can I handle dynamic GPU allocations in Snakemake?
+
+While there isn't a perfect solution for dynamic GPU allocations in Snakemake, here's a workable approach:
+
+1. Create a list of available GPUs in your Snakefile.
+2. Pass this list to your Python script via the `params` directive.
+3. In your Python script, select a GPU from the list.
+
+#### Example Implementation:
+
+**Snakefile**:
+
+```python
+AVAILABLE_GPU_LIST = [0, 1, 7]
+
+rule run_script_A:
+    input:
+        input_file = INPUT_FILE
+    output:
+        output_file = OUTPUT_FILE
+    params:
+        gpus = AVAILABLE_GPU_LIST
+    script:
+        "simulation.py"
+```
+
+**simulation.py**:
+
+```python
+import GPUtil
+import numpy as np
+
+gpus = snakemake.params["gpus"]
+devices = GPUtil.getAvailable(
+    maxLoad=1,
+    maxMemory=0.1,
+)
+
+device_id = np.random.choice([d for d in gpus if d in devices])
+```
+
+
 ## Methods
 
 ### How to use and train Sentence Transformer?
